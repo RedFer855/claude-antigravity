@@ -1,0 +1,8 @@
+﻿{
+  "name": "agy",
+  "version": "0.2.4",
+  "description": "Delegar ejecución a Antigravity (agy) con permisos controlados y registro de KPIs.",
+  "author": {
+    "name": "Fernando Barahona"
+  }
+}

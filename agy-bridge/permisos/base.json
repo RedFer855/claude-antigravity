@@ -1,0 +1,38 @@
+{
+  "_nota": "Reglas globales seguras para agy. Sintaxis action(target); command hace match por prefijo de palabras. deny gana sobre allow.",
+  "allow": [
+    "command(dir)",
+    "command(type)",
+    "command(ls)",
+    "command(cat)",
+    "command(where)",
+    "command(findstr)",
+    "command(rg)",
+    "command(Get-Content)",
+    "command(Get-ChildItem)",
+    "command(Select-String)",
+    "command(git status)",
+    "command(git diff)",
+    "command(git log)",
+    "command(git show)",
+    "command(git branch)",
+    "command(git rev-parse)",
+    "command(node --version)",
+    "command(npm --version)",
+    "command(python --version)",
+    "command(git --version)"
+  ],
+  "deny": [
+    "command(rm -rf)",
+    "command(rm -r)",
+    "command(Remove-Item)",
+    "command(del)",
+    "command(rmdir)",
+    "command(rd)",
+    "command(format)",
+    "command(git push)",
+    "command(git reset --hard)",
+    "command(git clean)",
+    "command(git checkout --)"
+  ]
+}
