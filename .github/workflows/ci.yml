@@ -1,0 +1,95 @@
+name: ci
+
+# Pipeline de integración. Mismo esquema que FOE 360:
+# - secretos: gitleaks sobre todo el historial.
+# - verificar: versiones coherentes, CHANGELOG, manifiestos y frontmatter, más las pruebas de scripts/.
+# - pruebas: las pruebas del plugin en Windows, Linux y macOS (Node 20 y 24).
+# - CI completo: el único check obligatorio. Falla si algún job falló o se canceló.
+# Las acciones van fijadas por SHA, con la versión en un comentario; Dependabot las actualiza.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secretos:
+    name: Secretos
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Secretos (gitleaks)
+        env:
+          VERSION: 8.30.1
+          SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tar.gz" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz"
+          echo "${SHA256}  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          # --redact: el secreto nunca se imprime en el log, solo el archivo, la línea y la regla.
+          "$RUNNER_TEMP/gitleaks" git --config .gitleaks.toml --no-banner --redact --verbose .
+
+  verificar:
+    name: Versiones y manifiestos
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: node scripts/verificar.mjs
+      - run: node --test scripts/versiones.test.mjs
+
+  pruebas:
+    name: Pruebas (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [20, 24]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Pruebas del plugin
+        working-directory: agy-bridge
+        run: npm test
+
+  ci-completo:
+    name: CI completo
+    if: always()
+    needs: [secretos, verificar, pruebas]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Resultado de los jobs
+        env:
+          RESULTADOS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Resultados: $RESULTADOS"
+          case " $RESULTADOS " in
+            *" failure "* | *" cancelled "* | *" skipped "*)
+              echo "::error::Un job falló, se canceló o se saltó."
+              exit 1
+              ;;
+          esac

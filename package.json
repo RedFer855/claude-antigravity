@@ -1,0 +1,15 @@
+{
+  "name": "claude-antigravity-repo",
+  "private": true,
+  "type": "module",
+  "description": "Herramientas del repositorio (verificación, releases). El plugin que se instala vive en agy-bridge/.",
+  "scripts": {
+    "test": "node --test",
+    "verificar": "node scripts/verificar.mjs",
+    "release": "node scripts/release.mjs",
+    "etiquetar": "node scripts/release.mjs etiquetar"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

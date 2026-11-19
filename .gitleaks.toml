@@ -1,0 +1,8 @@
+# gitleaks para claude-antigravity. Lo usa el job "Secretos" de .github/workflows/ci.yml.
+# Parte de las reglas por defecto. Si gitleaks marca un secreto real: se rota y se quita del historial;
+# nunca se agrega una excepción para dejarlo pasar.
+
+title = "claude-antigravity"
+
+[extend]
+useDefault = true

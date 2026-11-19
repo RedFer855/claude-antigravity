@@ -1,0 +1,19 @@
+# Dependabot. El plugin no tiene dependencias npm (cero dependencias es regla del repo, ver AGENTS.md),
+# así que solo se vigilan las acciones de GitHub, que van fijadas por SHA. Revisa cada lunes
+# y abre como máximo 3 PR; pasan por el mismo CI que cualquier otro.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Tegucigalpa
+    open-pull-requests-limit: 3
+    groups:
+      acciones:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
+      include: scope

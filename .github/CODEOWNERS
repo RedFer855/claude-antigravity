@@ -1,0 +1,11 @@
+# Dueños de código. GitHub les pide revisión cuando un PR toca sus rutas.
+# Si varias reglas coinciden, gana la última.
+
+*                     @RedFer855
+
+/.github/             @RedFer855
+/.gitleaks.toml       @RedFer855
+/scripts/             @RedFer855
+/AGENTS.md            @RedFer855
+/agy-bridge/permisos/ @RedFer855
+/agy-bridge/scripts/lib/guarda.mjs @RedFer855
