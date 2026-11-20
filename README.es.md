@@ -4,6 +4,8 @@
 
 Un plugin de Claude Code que le pasa el trabajo pesado y bien especificado (cambios en varios archivos, refactors, documentos Word/PDF) al CLI de Antigravity (`agy`, modelos Gemini) y te devuelve **un solo JSON compacto** en vez de un muro de narración.
 
+[![CI](https://github.com/RedFer855/claude-antigravity/actions/workflows/ci.yml/badge.svg)](https://github.com/RedFer855/claude-antigravity/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/RedFer855/claude-antigravity?include_prereleases)](https://github.com/RedFer855/claude-antigravity/releases)
 [![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 ![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-339933)
 ![Plugin de Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-d97757)
@@ -66,6 +68,17 @@ En Claude Code:
 
 No hace falta `npm install`: el plugin no tiene dependencias.
 
+## Actualizar
+
+```bash
+claude plugin marketplace update claude-antigravity
+claude plugin update agy@claude-antigravity
+```
+
+Reinicia Claude Code para aplicarlo. Lo que cambió en cada versión está en el [CHANGELOG](CHANGELOG.md) y en la página de [Releases](https://github.com/RedFer855/claude-antigravity/releases).
+
+Tu registro de KPIs, los permisos por proyecto y los briefs guardados se escriben en el directorio de datos de plugins de Claude Code (`CLAUDE_PLUGIN_DATA`), fuera de la carpeta del plugin, así que actualizar no los borra. Las versiones siguen [SemVer](https://semver.org/lang/es/): `0.x.y` para arreglos, `0.x.0` para funciones nuevas y `1.0.0` cuando el contrato de comandos y archivos de datos sea estable. Todo cambio en el formato de los archivos de datos trae su migración.
+
 ## Uso
 
 | Comando | Qué hace |
@@ -112,14 +125,19 @@ agy-bridge/
   permisos/base.json                lista global de permitidos y denegados
   scripts/agy-run.mjs               el runtime
   scripts/lib/                      cuota, snapshots de git, lector de stream, guarda, KPIs…
-  tests/                            pruebas con node:test (32)
+  tests/                            pruebas con node:test
+scripts/                            herramientas del repo: verificar.mjs, release.mjs (no se distribuyen)
+.github/workflows/                  ci.yml, release.yml
+CHANGELOG.md                        origen de las notas de cada release
 ```
 
 ## Desarrollo
 
 ```bash
-cd agy-bridge
-npm test        # node --test tests/*.test.mjs
+npm test                        # scripts del repo + pruebas del plugin (lo que corre el CI)
+npm run verificar               # versiones, CHANGELOG, manifiestos, frontmatter
+npm run release -- minor        # sube versión + CHANGELOG en una rama release/vX
+npm run etiquetar               # desde main actualizada: crea el tag; el CI publica el GitHub Release
 ```
 
 Los datos del runtime (registro de KPIs, permisos por proyecto, briefs y respuestas guardados) van a `CLAUDE_PLUGIN_DATA` cuando está instalado, para que las actualizaciones del plugin no los borren.
@@ -132,7 +150,7 @@ Los datos del runtime (registro de KPIs, permisos por proyecto, briefs y respues
 
 ## Contribuir
 
-Los issues y pull requests son bienvenidos, sobre todo para soporte de macOS/Linux. Se mantiene la regla de cero dependencias y cada comportamiento nuevo del runtime lleva su prueba.
+Los issues y pull requests son bienvenidos, sobre todo para soporte de macOS/Linux. Se mantiene la regla de cero dependencias, cada comportamiento nuevo del runtime lleva su prueba y el cambio se anota en `[Unreleased]` del CHANGELOG. Todo entra a `main` por PR con el check `CI completo` en verde; ver [AGENTS.md](AGENTS.md).
 
 ## Licencia
 

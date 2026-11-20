@@ -4,6 +4,8 @@
 
 A Claude Code plugin that hands the heavy, well-specified work (multi-file changes, refactors, Word/PDF documents) to the Antigravity CLI (`agy`, Gemini models) and gives you back one compact JSON verdict instead of a wall of narration.
 
+[![CI](https://github.com/RedFer855/claude-antigravity/actions/workflows/ci.yml/badge.svg)](https://github.com/RedFer855/claude-antigravity/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/RedFer855/claude-antigravity?include_prereleases)](https://github.com/RedFer855/claude-antigravity/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 ![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-339933)
 ![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)
@@ -66,6 +68,17 @@ In Claude Code:
 
 No `npm install` needed: the plugin has zero dependencies.
 
+## Updating
+
+```bash
+claude plugin marketplace update claude-antigravity
+claude plugin update agy@claude-antigravity
+```
+
+Restart Claude Code to apply it. What changed in each version is in the [CHANGELOG](CHANGELOG.md) and on the [Releases](https://github.com/RedFer855/claude-antigravity/releases) page.
+
+Your KPI log, per-project permissions and saved briefs are written to Claude Code's plugin data directory (`CLAUDE_PLUGIN_DATA`), outside the plugin folder, so updating does not wipe them. Versions follow [SemVer](https://semver.org): `0.x.y` for fixes, `0.x.0` for new features, and `1.0.0` once the command and data-file contract is stable. Any change to the data file formats ships with a migration.
+
 ## Usage
 
 | Command | What it does |
@@ -112,14 +125,19 @@ agy-bridge/
   permisos/base.json                global allow/deny list
   scripts/agy-run.mjs               the runtime
   scripts/lib/                      quota, git snapshots, stream parser, guard, KPIs…
-  tests/                            node:test suite (32 tests)
+  tests/                            node:test suite
+scripts/                            repo tooling: verificar.mjs, release.mjs (not shipped)
+.github/workflows/                  ci.yml, release.yml
+CHANGELOG.md                        release notes source
 ```
 
 ## Development
 
 ```bash
-cd agy-bridge
-npm test        # node --test tests/*.test.mjs
+npm test                        # repo scripts + plugin tests (what CI runs)
+npm run verificar               # versions, CHANGELOG, manifests, frontmatter
+npm run release -- minor        # bump version + CHANGELOG on a release/vX branch
+npm run etiquetar               # from an up-to-date main: tag it; CI publishes the GitHub Release
 ```
 
 Runtime data (KPI log, per-project permissions, saved briefs and replies) goes to `CLAUDE_PLUGIN_DATA` when installed, so plugin updates never wipe it.
@@ -132,7 +150,7 @@ Runtime data (KPI log, per-project permissions, saved briefs and replies) goes t
 
 ## Contributing
 
-Issues and pull requests are welcome, especially for macOS/Linux support and translations. Keep the zero-dependency rule and add a test for new runtime behaviour.
+Issues and pull requests are welcome, especially for macOS/Linux support and translations. Keep the zero-dependency rule, add a test for new runtime behaviour and note the change under `[Unreleased]` in the CHANGELOG. Everything lands on `main` through a PR with the `CI completo` check green; see [AGENTS.md](AGENTS.md).
 
 ## License
 

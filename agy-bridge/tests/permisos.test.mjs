@@ -2,8 +2,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { desiredRules, mergeSettings, projectKey, projectRules, suggestFromLog, sync, updateProject } from "../scripts/lib/permisos.mjs";
+
+// Ruta absoluta válida en el SO donde corre la prueba (en Linux/macOS "D:\\p" sería una ruta relativa).
+const absoluta = (...partes) => resolve(tmpdir(), ...partes);
+const aBarras = (p) => p.replace(/\\/g, "/");
 
 function tempPaths(settings = {}) {
   const dir = mkdtempSync(join(tmpdir(), "agy-perm-"));
@@ -20,7 +24,11 @@ function tempPaths(settings = {}) {
 const readSettings = (p) => JSON.parse(readFileSync(p.settings, "utf8"));
 
 test("projectKey normaliza barras y quita la final", () => {
-  assert.equal(projectKey("D:\\a\\b\\"), "D:/a/b");
+  const ruta = absoluta("a", "b");
+  assert.equal(projectKey(ruta + sep), aBarras(ruta));
+  assert.equal(projectKey(ruta + sep + sep), aBarras(ruta));
+  // Solo en Windows una ruta con letra de unidad y barras invertidas es absoluta.
+  if (process.platform === "win32") assert.equal(projectKey("D:\\a\\b\\"), "D:/a/b");
 });
 
 test("projectRules arma escritura por carpeta y comandos", () => {
@@ -51,11 +59,12 @@ test("sync + updateProject: agregar y quitar un proyecto deja el settings limpio
   sync(p);
   assert.deepEqual(readSettings(p).permissions.allow, ["command(mio)", "command(git status)"]);
 
-  updateProject("D:\\proj", (c) => { c.escritura = true; c.comandos.push("npm test"); }, p);
-  assert.ok(readSettings(p).permissions.allow.includes("write_file(D:/proj/)"));
+  const proj = absoluta("proj");
+  updateProject(proj, (c) => { c.escritura = true; c.comandos.push("npm test"); }, p);
+  assert.ok(readSettings(p).permissions.allow.includes(`write_file(${aBarras(proj)}/)`));
   assert.ok(readSettings(p).permissions.allow.includes("command(npm test)"));
 
-  updateProject("D:\\proj", (c) => { c.escritura = false; c.comandos = []; }, p);
+  updateProject(proj, (c) => { c.escritura = false; c.comandos = []; }, p);
   assert.deepEqual(readSettings(p).permissions.allow, ["command(mio)", "command(git status)"]);
   assert.deepEqual(JSON.parse(readFileSync(p.proyectos, "utf8")), {});
   // Hace respaldo antes de escribir.
@@ -66,6 +75,8 @@ test("suggestFromLog cuenta comandos denegados solo del proyecto", () => {
   const dir = mkdtempSync(join(tmpdir(), "agy-log-"));
   const log = join(dir, "t.jsonl");
   const rec = (proyecto, comando_denegado) => JSON.stringify({ proyecto, comando_denegado });
-  writeFileSync(log, [rec("D:\\p", "npm test"), rec("D:/p", "npm test"), rec("D:/p", "pytest"), rec("D:/otro", "make"), "basura", rec("D:/p", null)].join("\n"));
-  assert.deepEqual(suggestFromLog(log, "D:/p"), [{ comando: "npm test", veces: 2 }, { comando: "pytest", veces: 1 }]);
+  const p = absoluta("p");
+  // El mismo proyecto escrito con barras del SO y con barras normales cuenta como uno solo.
+  writeFileSync(log, [rec(p, "npm test"), rec(aBarras(p), "npm test"), rec(aBarras(p), "pytest"), rec(absoluta("otro"), "make"), "basura", rec(aBarras(p), null)].join("\n"));
+  assert.deepEqual(suggestFromLog(log, p), [{ comando: "npm test", veces: 2 }, { comando: "pytest", veces: 1 }]);
 });
