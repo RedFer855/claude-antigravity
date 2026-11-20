@@ -3,7 +3,7 @@
 // al terminar, lo que el agente cambió, borró o creó ahí se devuelve a como estaba y se informa.
 // Va aparte del snapshot de git porque este ignora lo que está en .gitignore, y un .env casi
 // siempre lo está.
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 // Sin distinguir mayúsculas: en Windows y macOS `.ENV` es el mismo archivo que `.env`.
@@ -49,25 +49,36 @@ export function capturar(cwd) {
   return antes;
 }
 
-// Compara con lo capturado y repone. Devuelve [{ archivo, accion }] con accion
+// Compara con lo capturado y repone. Devuelve [{ archivo, accion, respaldo? }] con accion
 // "restaurado" (cambiado o borrado) o "eliminado" (apareció durante el turno).
-export function hacerCumplir(cwd, antes) {
+// Con `respaldo` (carpeta), lo que hay ahora se copia ahí antes de pisarlo o borrarlo: si el cambio
+// no lo hizo agy sino el usuario durante la corrida, no se pierde. La entrada trae la ruta de la copia.
+export function hacerCumplir(cwd, antes, { respaldo } = {}) {
   const revertidos = [];
   const ahora = new Set(listarProhibidas(cwd));
+  const guardarCopia = (rel, p) => {
+    if (!respaldo || !existsSync(p)) return undefined;
+    const destino = join(respaldo, rel);
+    mkdirSync(dirname(destino), { recursive: true });
+    copyFileSync(p, destino);
+    return destino;
+  };
   for (const [rel, contenido] of antes) {
     const p = join(cwd, rel);
     let igual = false;
     try { igual = ahora.has(rel) && readFileSync(p).equals(contenido); } catch { /* se restaura */ }
     if (igual) continue;
+    const copia = guardarCopia(rel, p);
     mkdirSync(dirname(p), { recursive: true });
     writeFileSync(p, contenido);
-    revertidos.push({ archivo: rel, accion: "restaurado" });
+    revertidos.push({ archivo: rel, accion: "restaurado", ...(copia && { respaldo: copia }) });
   }
   for (const rel of ahora) {
     if (antes.has(rel)) continue;
     const p = join(cwd, rel);
+    const copia = guardarCopia(rel, p);
     if (existsSync(p)) unlinkSync(p);
-    revertidos.push({ archivo: rel, accion: "eliminado" });
+    revertidos.push({ archivo: rel, accion: "eliminado", ...(copia && { respaldo: copia }) });
   }
   return revertidos;
 }

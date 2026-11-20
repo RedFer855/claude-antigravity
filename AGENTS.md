@@ -13,7 +13,9 @@ Plugin de Claude Code (`agy`) que delega trabajo a Antigravity CLI. Lo que se in
    (`C:\Users\...`), nombres de clientes ni secretos. gitleaks revisa, pero no basta: se revisa a mano antes de commitear.
 2. **Cero dependencias.** El plugin usa solo Node (>= 20) y git. No se agrega ningún paquete npm.
 3. **Pruebas.** Todo comportamiento nuevo del runtime lleva prueba con `node:test` en `agy-bridge/tests/`. Los fixtures
-   de agy (`tests/fixtures/`) son salidas reales sin datos personales.
+   de agy (`tests/fixtures/`) son salidas reales sin datos personales. El flujo completo se prueba con un agy falso
+   (`tests/helpers/agy-falso.mjs`, vía `AGY_BIN` y `AGY_BIN_ARGS`; ver `tests/runtime.test.mjs`): sin agy real ni cuota.
+   Las rutas de las pruebas se arman con `path`, nunca con `D:\...` a mano: el CI corre en Linux y macOS.
 4. **Datos del usuario.** `tareas.jsonl`, `permisos-proyectos.json` y `reglas-aplicadas.json` viven en
    `CLAUDE_PLUGIN_DATA` y deben sobrevivir a una actualización. Si cambia el formato de alguno: campo `esquema` y migración
    que lea el formato anterior. Nunca se rompe el historial de quien ya lo usa.

@@ -6,9 +6,11 @@
 //   node permisos.mjs agregar  [--cwd <dir>] [--escritura] [--comando "<cmd>"]...
 //   node permisos.mjs quitar   [--cwd <dir>] [--escritura] [--comando "<cmd>"]...
 //   node permisos.mjs sugerir  [--cwd <dir>]       comandos denegados según el registro de KPIs
+//   node permisos.mjs limpiar                      quita los comandos temporales de corridas que ya no existen
+// Los comandos de una sola delegación no se registran aquí: se pasan a agy-run.mjs con --comando y se quitan solos.
 import { parseArgs } from "node:util";
 import { DEFAULT_LOG } from "./lib/kpis.mjs";
-import { loadState, PATHS, projectKey, projectRules, suggestFromLog, sync, updateProject } from "./lib/permisos.mjs";
+import { limpiarHuerfanos, loadState, PATHS, projectKey, projectRules, suggestFromLog, sync, updateProject } from "./lib/permisos.mjs";
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -57,7 +59,7 @@ switch (accion) {
     });
     const out = { proyecto: key, reglas_proyecto: projectRules(key, loadState().proyectos[key] ?? { comandos: [] }) };
     if (add && values.comando.length) {
-      out.aviso = "Coincidencia exacta: agy solo permite el comando idéntico a la regla (sin prefijos ni comodines). Registra cada comando completo con sus argumentos. Las reglas son globales: quita las de un solo uso al terminar.";
+      out.aviso = "Coincidencia exacta: agy solo permite el comando idéntico a la regla (sin prefijos ni comodines). Registra cada comando completo con sus argumentos. Las reglas son globales y quedan hasta que las quites. Para un comando de una sola delegación usa --comando en agy-run.mjs: se agrega y se quita solo.";
       const comodines = values.comando.filter((c) => /[*?]/.test(c));
       if (comodines.length) out.sospechosos = comodines.map((c) => `${c} → agy no interpreta comodines; solo coincidirá con ese texto literal`);
     }
@@ -66,6 +68,9 @@ switch (accion) {
   }
   case "sugerir":
     print({ proyecto: key, sugerencias: suggestFromLog(values.log ?? DEFAULT_LOG, cwd) });
+    break;
+  case "limpiar":
+    print({ quitadas: limpiarHuerfanos() });
     break;
   default:
     console.error(`Acción desconocida: ${accion}`);
