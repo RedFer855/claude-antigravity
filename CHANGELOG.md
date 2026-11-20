@@ -10,6 +10,8 @@ Para publicar: `npm run release -- minor` (o `patch`, `major`, `x.y.z`). Lo que 
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-20
+
 ### Added
 - CI en GitHub Actions: pruebas en Windows, Linux y macOS (Node 20 y 24), verificación de versiones y manifiestos, y búsqueda de secretos con gitleaks. El único check obligatorio es `CI completo`.
 - Flujo de releases: `npm run release` sube la versión en todos los archivos y el CHANGELOG, `npm run etiquetar` crea el tag y el workflow `release` publica el GitHub Release con estas notas.
