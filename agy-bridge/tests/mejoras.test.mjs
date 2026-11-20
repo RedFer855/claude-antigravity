@@ -3,10 +3,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { atribuir, relativaA } from "../scripts/lib/atribucion.mjs";
+import { atribuir, canonica, relativaA } from "../scripts/lib/atribucion.mjs";
 import { diffSummary, raizRepo, snapshot, undo } from "../scripts/lib/git.mjs";
 import { capturar, hacerCumplir } from "../scripts/lib/guarda.mjs";
 import { agregarTemporales, limpiarHuerfanos, quitarTemporales } from "../scripts/lib/permisos.mjs";
@@ -36,6 +36,19 @@ test("relativaA: absoluta, relativa y file://; lo de fuera da null", () => {
   assert.equal(relativaA(raiz, ""), null);
   const url = new URL(`file:///${join(raiz, "b.txt").replace(/\\/g, "/").replace(/^\//, "")}`).href;
   assert.equal(relativaA(raiz, url), "b.txt");
+});
+
+test("relativaA: una carpeta y su alias (enlace simbólico o junction) son la misma raíz", () => {
+  // Reproduce lo de macOS (/var → /private/var) y los nombres cortos de Windows: git da la ruta canónica
+  // y agy o --cwd usan otra forma de la misma carpeta.
+  const real = carpeta("agy-real-");
+  const alias = join(carpeta("agy-alias-"), "enlace");
+  symlinkSync(real, alias, process.platform === "win32" ? "junction" : "dir");
+  writeFileSync(join(real, "a.js"), "x");
+  assert.equal(relativaA(alias, join(real, "a.js")), "a.js"); // raíz por el alias, archivo por la ruta real
+  assert.equal(relativaA(real, join(alias, "a.js")), "a.js"); // y al revés
+  assert.equal(relativaA(realpathSync.native(real), join(alias, "no-existe", "b.js")), "no-existe/b.js"); // archivo que ya no existe
+  assert.equal(canonica(join(alias, "no-existe", "b.js")), join(realpathSync.native(real), "no-existe", "b.js"));
 });
 
 test("atribuir: separa lo de agy de lo ajeno y suma líneas solo de agy", () => {
@@ -119,7 +132,7 @@ test("git: desde una subcarpeta las rutas son de la raíz del repo y los nombres
   writeFileSync(join(dir, "ñandú.txt"), "x\n");
   writeFileSync(join(dir, "sub", "b.txt"), "y\n");
   const despues = snapshot(join(dir, "sub"), "m4-despues");
-  assert.equal(resolve(raizRepo(join(dir, "sub"))), resolve(dir));
+  assert.equal(canonica(raizRepo(join(dir, "sub"))), canonica(dir)); // git da la ruta canónica; tmpdir() puede ser un alias
   const d = diffSummary(raizRepo(dir), antes, despues);
   assert.deepEqual(d.archivos.map((f) => f.archivo).sort(), ["sub/b.txt", "ñandú.txt"].sort());
   assert.equal(d.inserciones, 2);

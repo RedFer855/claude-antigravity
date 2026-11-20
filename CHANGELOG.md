@@ -30,6 +30,7 @@ Para publicar: `npm run release -- minor` (o `patch`, `major`, `x.y.z`). Lo que 
 ### Fixed
 - `deshacer` y `cambios` atribuían a agy cualquier archivo que cambiara en la carpeta durante la corrida, y `deshacer` los revertía también: con trabajo en paralelo se perdían ediciones ajenas.
 - Con `--cwd` en una subcarpeta del repo, el diff y `deshacer` usaban rutas relativas a la carpeta equivocada. Ahora usan la raíz del repo.
+- La atribución compara rutas canónicas: si el proyecto está bajo un enlace simbólico (en macOS `/var` es un enlace a `/private/var`) o en Windows se usa un nombre corto (`RUNNER~1`), git y agy veían la misma carpeta con rutas distintas y ningún archivo se atribuía a agy.
 - Los nombres de archivo con acentos o `ñ` salían escapados (`"\303\261..."`) en el diff y no se podían comparar ni revertir.
 
 ## [0.2.4] - 2026-11-19
