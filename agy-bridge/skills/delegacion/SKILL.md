@@ -40,9 +40,8 @@ Recomienda en **una sola pregunta** (AskUserQuestion), con la recomendación pri
 - **Modo auto (preferido).** Si en agy `/config` → `Agent Mode` = `auto`, el modo `-p` lo toma: aprueba solo los comandos seguros (con cualquier argumento) y rechaza lo irreversible (probado: `git log --oneline -1` pasa, `Remove-Item` se rechaza). Con auto activo no hace falta la lista exacta de abajo; pide igual en el brief que no use scripts ni bucles. No uses el flag `--mode auto`: desde Claude responde "not available for this account" aunque la configuración guardada sí funciona.
 - **Comandos permitidos (coincidencia exacta, si auto no está activo).** agy solo deja correr un comando si es idéntico, carácter por carácter, a una regla: `command(git log)` no permite `git log --oneline -1`, y no hay prefijos ni comodines (probado: `*`, `:*`, `**`). En headless lo que no coincide se rechaza sin preguntar. Por eso:
   1. Decide la lista cerrada de comandos exactos que agy necesita (incluido el de `--verificar` si quieres que agy también lo corra), con sus argumentos.
-  2. Muéstrala al usuario, confirma y regístrala antes de ejecutar: `permisos.mjs agregar --cwd "<CWD>" --comando "<cmd 1>" --comando "<cmd 2>"`.
+  2. Muéstrala al usuario y confirma. Pásala a `agy-run.mjs` con un `--comando "<cmd>"` por comando: el runtime los permite solo durante esa delegación y **los quita siempre al terminar**, aunque falle o se corte; si el proceso muere, la corrida siguiente los limpia. No necesitas registrarlos ni quitarlos tú. Si un comando es de uso permanente en el proyecto, regístralo con `permisos.mjs agregar --cwd "<CWD>" --comando "<cmd>"` (las reglas son globales, no por proyecto).
   3. Pon en el brief una sección `ALLOWED COMMANDS (run them verbatim; any other command will be denied):` con esa lista, y pide que no use scripts, bucles, variables, `cd` ni `-C`.
-  4. Al terminar la delegación, quita con `permisos.mjs quitar` los comandos de un solo uso (las reglas son globales, no por proyecto).
   - Si la tarea necesita muchos comandos distintos que no puedes prever (exploración, auditorías de muchas carpetas), no conviene delegar: hazla tú.
 - Escribe el brief con la skill `gemini-prompting` (en inglés, rutas y no contenido, engram o archivo para el contexto largo).
 
@@ -53,7 +52,7 @@ Recomienda en **una sola pregunta** (AskUserQuestion), con la recomendación pri
 
 ## 5. Ejecutar (una llamada)
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/agy-run.mjs" --cwd "<CWD>" --model "<modelo>" [--goal] [--preguntas] [--conversation "<id>"] [--verificar "<comando>"] --tipo "<mecanico|feature|refactor|documento|...>" --recomendado "<tu recomendación>" <<'AGY_BRIEF_FIN'
+node "${CLAUDE_PLUGIN_ROOT}/scripts/agy-run.mjs" --cwd "<CWD>" --model "<modelo>" [--goal] [--preguntas] [--conversation "<id>"] [--verificar "<comando>"] [--comando "<cmd permitido>"]... --tipo "<mecanico|feature|refactor|documento|...>" --recomendado "<tu recomendación>" <<'AGY_BRIEF_FIN'
 <brief>
 AGY_BRIEF_FIN
 ```
@@ -64,14 +63,16 @@ AGY_BRIEF_FIN
 
 ## 6. Revisar con el JSON (sin turnos extra si está bien)
 - `ok` + verificación ok + `cambios.archivos` son los esperados → **aprobado** sin leer el diff. Lee el diff solo si toca auth, datos, dinero, seguridad o migraciones, o si aparecen archivos inesperados.
+- `cambios.archivos` son los que agy escribió con sus herramientas de archivo. Si viene `cambios.otros`, esos archivos cambiaron en la carpeta durante la corrida pero no por una escritura de agy: pueden ser de un comando suyo (formateador, build) o de tu trabajo en paralelo. Ábrelos antes de aprobar y no se los atribuyas a agy. Las rutas prohibidas que la guarda revirtió (`rutas_prohibidas_revertidas`) traen `respaldo` con la copia de lo que había: si el cambio era del usuario, devuélvesela.
+- Si `respuesta_truncada` es true, el recorte conserva el principio y el final; el resto está en `respuesta_completa` (ruta a un archivo que puedes leer con Read).
 - `verificacion_fallida` → continúa con `--conversation` mandando como delta solo `verificacion.salida_final` y qué corregir.
 - `permiso_denegado` → muestra `comando_denegado`. Si es razonable, propone registrarlo **tal cual** (la cadena completa, no un prefijo) y, tras confirmar, continúa con `--conversation`. Si agy inventó un comando fuera de la lista, continúa recordándole la lista `ALLOWED COMMANDS`.
 - `sin_cuota` → propone un modelo de otro grupo (por ejemplo `claude-sonnet-5-5-medium` dentro de agy) o hazlo tú.
 - `parcial` (agy reportó un error pero entregó algo, y no había `--verificar`) → revisa `cambios` y corre tú la verificación una vez.
 - `vacio`, `error` o `timeout` → explica el `motivo` en una línea y propone el siguiente paso.
 - **Máximo 2 continuaciones de corrección.** Si sigue mal, tómala tú o pregúntale al usuario. No entres en un ciclo.
-- Si el resultado es malo y conviene revertir, propone `node "${CLAUDE_PLUGIN_ROOT}/scripts/agy-run.mjs" deshacer --id <delegacion_id> --cwd "<CWD>"`. Revierte solo lo que hizo agy. Pide confirmación antes.
-- En documentos: revisa `CIFRAS` contra las fuentes (datos críticos). El formato visual lo revisa el usuario abriendo el archivo.
+- Si el resultado es malo y conviene revertir, propone `node "${CLAUDE_PLUGIN_ROOT}/scripts/agy-run.mjs" deshacer --id <delegacion_id> --cwd "<CWD>"`. Revierte solo lo que agy escribió con sus herramientas de archivo (`cambios.archivos`) y **no toca** lo editado después de la corrida: esos archivos salen en `conflictos`. Dile al usuario qué quedó sin revertir. `--forzar` revierte también los conflictos; `--todo` incluye además `cambios.otros`. Usa cualquiera de los dos solo si el usuario lo pide. Pide confirmación antes.
+- En documentos: revisa `CIFRAS` contra las fuentes (datos críticos). Si la respuesta vino truncada, lee `CIFRAS` en `respuesta_completa`. El formato visual lo revisa el usuario abriendo el archivo.
 
 ## 7. Informar
 Máximo ~6 líneas: modelo, estado, tiempo, archivos cambiados, tu veredicto (aprobado, ajuste o rehecho) y el siguiente paso. Si el problema vino del brief, di la lección en una línea.

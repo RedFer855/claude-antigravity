@@ -27,7 +27,8 @@ export function buildRecord(verdict, meta) {
     tokens: verdict.tokens ?? null,
     acciones_denegadas: verdict.acciones_denegadas ?? [],
     comando_denegado: verdict.comando_denegado ?? null,
-    cambios: meta.cambios ? { archivos: meta.cambios.archivos.length, inserciones: meta.cambios.inserciones, borrados: meta.cambios.borrados } : null,
+    // archivos: los que agy escribió con sus herramientas; otros: cambiaron en la carpeta durante la corrida sin ser de agy.
+    cambios: meta.cambios ? { archivos: meta.cambios.archivos.length, otros: meta.cambios.otros?.length ?? 0, inserciones: meta.cambios.inserciones, borrados: meta.cambios.borrados } : null,
     verificacion: meta.verificacion ? { cmd: meta.verificacion.cmd, ok: meta.verificacion.ok } : null,
     snapshots: meta.antes ? { antes: meta.antes, despues: meta.despues } : null,
     // Se completan después: costo de Claude (costo-claude.mjs) y revisión de Claude.

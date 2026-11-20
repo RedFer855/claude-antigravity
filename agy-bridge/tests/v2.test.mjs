@@ -112,7 +112,8 @@ test("truncate recorta y avisa", () => {
   assert.deepEqual(truncate("abc", 5), { texto: "abc", truncada: false });
   const t = truncate("x".repeat(10), 4);
   assert.equal(t.truncada, true);
-  assert.ok(t.texto.startsWith("xxxx"));
+  assert.ok(t.texto.startsWith("xxx")); // 60% del tope al principio y el resto al final (ver mejoras.test.mjs)
+  assert.ok(t.texto.endsWith("x"));
 });
 
 test("verificación: ok y fallo con código", () => {

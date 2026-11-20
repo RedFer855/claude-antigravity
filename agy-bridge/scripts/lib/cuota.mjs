@@ -34,7 +34,18 @@ export function remainingFor(usage, model) {
   return vals.length ? Math.min(...vals) : null;
 }
 
+// Gancho para pruebas: AGY_BIN_ARGS (arreglo JSON) se antepone a los argumentos de agy. Con AGY_BIN=node y
+// AGY_BIN_ARGS='["agy-falso.mjs"]' el runtime se prueba de punta a punta sin el agy real ni gastar cuota.
+export function argsPrefijo(env = process.env) {
+  try {
+    const a = JSON.parse(env.AGY_BIN_ARGS ?? "[]");
+    return Array.isArray(a) ? a.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function readUsage(binary) {
-  const out = execFileSync(binary, ["-p", "/usage", "--output-format", "json"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 60000 });
+  const out = execFileSync(binary, [...argsPrefijo(), "-p", "/usage", "--output-format", "json"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 60000 });
   return parseUsage(JSON.parse(out.trim().split(/\r?\n/).at(-1)));
 }
