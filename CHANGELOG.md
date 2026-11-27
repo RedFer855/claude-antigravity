@@ -10,6 +10,8 @@ Para publicar: `npm run release -- minor` (o `patch`, `major`, `x.y.z`). Lo que 
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-27
+
 ### Added
 - Modelos nuevos en la tabla de la skill `delegacion`: `gemini-4-carbon-high` para razonamiento largo, Orchestrator con Carbon (`gemini-pro-orchestrator`) y con Neon (`gemini-pro-orchestrator-neon`) para tareas grandes que se parten en piezas, y `claude-opus-5-5-high` como escalón de Opus.
 
