@@ -10,6 +10,12 @@ Para publicar: `npm run release -- minor` (o `patch`, `major`, `x.y.z`). Lo que 
 
 ## [Unreleased]
 
+### Added
+- Modelos nuevos en la tabla de la skill `delegacion`: `gemini-4-carbon-high` para razonamiento largo, Orchestrator con Carbon (`gemini-pro-orchestrator`) y con Neon (`gemini-pro-orchestrator-neon`) para tareas grandes que se parten en piezas, y `claude-opus-5-5-high` como escalón de Opus.
+
+### Removed
+- Argon (`gemini-4-argon-*`, `gemini-pro-orchestrator-argon`): sale del mercado. La skill ya no lo recomienda y la cuota deja de tratarlo como bolsa aparte.
+
 ## [0.3.0] - 2026-11-20
 
 ### Added

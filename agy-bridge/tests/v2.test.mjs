@@ -16,7 +16,9 @@ const fx = (name) => readFileSync(join(dirname(fileURLToPath(import.meta.url)), 
 test("cuota: grupos por modelo", () => {
   assert.equal(quotaGroup("gemini-3.8-flash-medium"), "gemini");
   assert.equal(quotaGroup("gemini-4-hydrogen-xhigh"), "gemini");
-  assert.equal(quotaGroup("gemini-4-argon-low"), "argon");
+  assert.equal(quotaGroup("gemini-4-carbon-high"), "gemini");
+  assert.equal(quotaGroup("gemini-pro-orchestrator"), "gemini");
+  assert.equal(quotaGroup("gemini-pro-orchestrator-neon"), "gemini");
   assert.equal(quotaGroup("claude-sonnet-5-5-medium"), "claude_gpt");
   assert.equal(quotaGroup("gpt-oss-120b-medium"), "claude_gpt");
 });
@@ -25,9 +27,8 @@ test("cuota: parsea /usage y toma la ventana más baja", () => {
   const u = parseUsage(JSON.parse(fx("usage.json")));
   assert.equal(u.gemini["5h"], 0.97);
   assert.equal(u.gemini.semanal, 0.93);
-  assert.equal(u.argon.semanal, 0.03);
   assert.equal(remainingFor(u, "gemini-3.8-flash-high"), 0.93);
-  assert.equal(remainingFor(u, "gemini-4-argon-medium"), 0.03);
+  assert.equal(remainingFor(u, "gemini-pro-orchestrator"), 0.93);
   assert.equal(remainingFor(u, "claude-opus-5-5-high"), 1);
 });
 
