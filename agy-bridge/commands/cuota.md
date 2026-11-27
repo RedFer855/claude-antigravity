@@ -1,5 +1,5 @@
 ---
-description: Ver la cuota disponible de Antigravity (Gemini, Claude/GPT, Argon) y de Claude
+description: Ver la cuota disponible de Antigravity (Gemini y Claude/GPT) y de Claude
 allowed-tools: Bash(node:*)
 ---
 

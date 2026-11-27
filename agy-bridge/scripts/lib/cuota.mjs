@@ -1,15 +1,14 @@
 // Cuota de agy vía `agy -p /usage --output-format json` (no gasta tokens).
 import { execFileSync } from "node:child_process";
 
-// Grupo de cuota que consume cada modelo (plan Pro: Argon tiene bolsa aparte).
-// Hydrogen no aparece como grupo propio en `/usage` (2026-11-12): cae en "gemini".
+// Grupo de cuota que consume cada modelo. Hydrogen, Neon, Carbon y Orchestrator no tienen grupo propio
+// en `/usage` (2026-11-27): caen en "gemini". Argon sale del mercado y ya no aparece como bolsa aparte.
 export function quotaGroup(model = "") {
-  if (model.startsWith("gemini-4-argon")) return "argon";
   if (model.startsWith("claude-") || model.startsWith("gpt-")) return "claude_gpt";
   return "gemini";
 }
 
-const GROUP_IDS = { "Gemini Models": "gemini", "Claude and GPT models": "claude_gpt", "Gemini 4 Argon": "argon" };
+const GROUP_IDS = { "Gemini Models": "gemini", "Claude and GPT models": "claude_gpt" };
 
 // Resume el JSON de /usage a { grupo: { "5h": fracción, semanal: fracción, reinicio } }.
 export function parseUsage(envelope) {

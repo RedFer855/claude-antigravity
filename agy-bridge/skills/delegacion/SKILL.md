@@ -27,10 +27,14 @@ Si el usuario forzó la delegación ("usa anty", `/agy:delegar`), no discutas si
 | Muy pequeño (rara vez vale delegarlo) | `gemini-4-hydrogen-low` |
 | Realmente difícil: seguridad y ciberdefensa (auditar, vulnerabilidades, RLS, RPC con dinero o auth) o razonamiento a la par de Opus. Solo para esto: Hydrogen sigue por defecto | `gemini-4-neon-high` (`xhigh` solo si `high` falló) |
 | Difícil pero bien especificado, tareas de terminal o de uso de ordenador, o `xhigh` ya falló | `claude-sonnet-5-5-medium` (dentro de agy: cuota de Google, aparte de la tuya) |
-| Muy difícil | `claude-opus-5-5-medium` (dentro de agy) |
-| Argon | Solo si la cuota `argon` está sobre 30%: en el plan Pro su bolsa es pequeña |
+| Razonamiento largo y profundo sobre un problema acotado (analizar un diseño, buscar la causa con pistas claras, revisar un plan) | `gemini-4-carbon-high` (`medium` si basta) |
+| Tarea grande que se parte en varias piezas independientes (migrar varias pantallas, cambios en muchos módulos) | `gemini-pro-orchestrator` (Orchestrator con Carbon) |
+| Tarea grande y delicada en seguridad o con varias piezas difíciles | `gemini-pro-orchestrator-neon` (Orchestrator con Neon) |
+| Muy difícil | `claude-opus-5-5-medium` (dentro de agy; `high` solo si `medium` falló) |
 
-Hydrogen (`gemini-4-hydrogen`, 2026-11-12) reemplaza a `gemini-3.8-flash` como modelo por defecto. `high` es el nivel por defecto de Google y el que mide sus benchmarks; a mayor nivel gasta más tokens (model card), así que `xhigh` no va por defecto. Hydrogen es el modelo ejecutor: el razonamiento largo y profundo es de Argon y Carbon. Con los KPIs del plugin (`cuota` y registro de delegaciones) mide cuánto cuesta cada nivel antes de cambiar el valor por defecto.
+Argon (`gemini-4-argon-*` y `gemini-pro-orchestrator-argon`) sale pronto del mercado: no lo recomiendes ni lo uses aunque aparezca en `agy models`.
+
+Hydrogen (`gemini-4-hydrogen`, 2026-11-12) reemplaza a `gemini-3.8-flash` como modelo por defecto. `high` es el nivel por defecto de Google y el que mide sus benchmarks; a mayor nivel gasta más tokens (model card), así que `xhigh` no va por defecto. Hydrogen es el modelo ejecutor: el razonamiento largo y profundo es de Carbon. Orchestrator reparte una tarea grande entre varios agentes con el modelo que lleva en el nombre (Carbon por defecto, o Neon); gasta más cuota que un modelo solo, así que úsalo solo cuando la tarea de verdad se parte en piezas. Con los KPIs del plugin (`cuota` y registro de delegaciones) mide cuánto cuesta cada nivel antes de cambiar el valor por defecto.
 
 Recomienda en **una sola pregunta** (AskUserQuestion), con la recomendación primero: "Delegar con <modelo>" / "Delegar con otro modelo" / "Lo hago yo". Si el usuario cambia el modelo, úsalo sin discutir. Guarda tu recomendación para pasarla como `--recomendado`.
 

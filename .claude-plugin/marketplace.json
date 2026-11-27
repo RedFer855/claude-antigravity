@@ -5,13 +5,13 @@
   },
   "metadata": {
     "description": "Puente Claude Code → Antigravity CLI: Claude planea y revisa, agy ejecuta.",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "plugins": [
     {
       "name": "agy",
       "description": "Delegar ejecución a Antigravity (agy) con permisos controlados y registro de KPIs.",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "author": {
         "name": "Fernando Barahona"
       },

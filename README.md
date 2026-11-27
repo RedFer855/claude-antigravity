@@ -111,7 +111,7 @@ node agy-bridge/scripts/agy-run.mjs deshacer --id d1234 --cwd .  # revert one de
 
 ### Which model?
 
-Default is `gemini-4-hydrogen-high`; `medium` for mechanical single-file work, `xhigh` before switching models, `gemini-4-neon-high` for security-sensitive reviews, and Claude models *inside* `agy` (billed to your Google quota, separate from your Claude one) for hard, well-specified tasks. The full table lives in [`skills/delegacion/SKILL.md`](agy-bridge/skills/delegacion/SKILL.md).
+Default is `gemini-4-hydrogen-high`; `medium` for mechanical single-file work, `xhigh` before switching models, `gemini-4-neon-high` for security-sensitive reviews, `gemini-4-carbon-high` for long, deep reasoning, Orchestrator (`gemini-pro-orchestrator` with Carbon, `gemini-pro-orchestrator-neon` with Neon) for large tasks that split into independent pieces, and Claude models *inside* `agy` (billed to your Google quota, separate from your Claude one) for hard, well-specified tasks. The full table lives in [`skills/delegacion/SKILL.md`](agy-bridge/skills/delegacion/SKILL.md).
 
 ## Project layout
 

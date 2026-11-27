@@ -111,7 +111,7 @@ node agy-bridge/scripts/agy-run.mjs deshacer --id d1234 --cwd .  # revertir una 
 
 ### ¿Qué modelo?
 
-Por defecto `gemini-4-hydrogen-high`; `medium` para trabajo mecánico de un archivo, `xhigh` antes de cambiar de modelo, `gemini-4-neon-high` para revisiones de seguridad, y modelos de Claude *dentro de* `agy` (a cuenta de tu cuota de Google, aparte de la de Claude) para tareas difíciles pero bien especificadas. La tabla completa está en [`skills/delegacion/SKILL.md`](agy-bridge/skills/delegacion/SKILL.md).
+Por defecto `gemini-4-hydrogen-high`; `medium` para trabajo mecánico de un archivo, `xhigh` antes de cambiar de modelo, `gemini-4-neon-high` para revisiones de seguridad, `gemini-4-carbon-high` para razonamiento largo y profundo, Orchestrator (`gemini-pro-orchestrator` con Carbon, `gemini-pro-orchestrator-neon` con Neon) para tareas grandes que se parten en piezas independientes, y modelos de Claude *dentro de* `agy` (a cuenta de tu cuota de Google, aparte de la de Claude) para tareas difíciles pero bien especificadas. La tabla completa está en [`skills/delegacion/SKILL.md`](agy-bridge/skills/delegacion/SKILL.md).
 
 ## Estructura
 
